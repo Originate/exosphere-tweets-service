@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "author": "Kevin Goslar",
   "dependencies": {
-    "exoservice": "0.16.5",
+    "exoservice": "0.15.1",
     "get-env": "0.5.1",
     "mongodb": "2.2.9",
     "nitroglycerin": "1.1.2",

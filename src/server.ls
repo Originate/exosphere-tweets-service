@@ -13,7 +13,7 @@ module.exports =
 
   before-all: (done) ->
     mongo-db-name = "exosphere-mongo-service-#{env}"
-    MongoClient.connect "mongodb://localhost:27017/#{mongo-db-name}", N (mongo-db) ->
+    MongoClient.connect "mongodb://mongo:27017/#{mongo-db-name}", N (mongo-db) ->
       collection := mongo-db.collection 'tweets'
       console.log "MongoDB '#{mongo-db-name}' connected"
       done!
