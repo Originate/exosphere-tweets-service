@@ -1,4 +1,4 @@
-name: Exosphere tweets service
+name: tweets
 description: Generic MongoDB storage service
 author: originate
 
