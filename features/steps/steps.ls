@@ -9,7 +9,7 @@ require! {
   'port-reservation'
   'record-http' : HttpRecorder
   'request'
-  'wait' : {wait-until}
+  'wait' : {wait-until, wait}
 }
 
 
@@ -24,19 +24,17 @@ module.exports = ->
 
 
   @Given /^an instance of this service$/, (done) ->
-    port-reservation
-      ..get-port N (@service-port) ~>
-        @exocom.register-service name: 'tweets', port: @service-port
-        @process = new ExoService service-name: 'tweets', exocom-port: @exocom.pull-socket-port, exorelay-port: @service-port
-          ..listen!
-          ..on 'online', -> done!
+    @process = new ExoService exocom-host: 'localhost', service-name: 'tweets', exocom-port: @exocom-port
+      ..listen!
+      ..on 'online', -> done!
 
 
   @Given /^the service contains the entries:$/, (table, done) ->
-    entries = [{[key.to-lower-case!, value] for key, value of record} for record in table.hashes!]
-    @exocom
-      ..send service: 'tweets', name: 'tweets.create-many', payload: entries
-      ..on-receive done
+    wait 100, ~>
+      entries = [{[key.to-lower-case!, value] for key, value of record} for record in table.hashes!]
+      @exocom
+        ..send service: 'tweets', name: 'tweets.create-many', payload: entries
+        ..on-receive done
 
 
 
@@ -45,13 +43,14 @@ module.exports = ->
 
 
   @When /^sending the message "([^"]*)" with the payload:$/, (message, payload, done) ->
-    @fill-in-entry-ids payload, (filled-payload) ~>
-      if filled-payload[0] is '['   # payload is an array
-        eval livescript.compile "payload-json = #{filled-payload}", bare: true, header: no
-      else                          # payload is a hash
-        eval livescript.compile "payload-json = {\n#{filled-payload}\n}", bare: true, header: no
-      @exocom.send service: 'tweets', name: message, payload: payload-json
-      done!
+    wait 100, ~>
+      @fill-in-entry-ids payload, (filled-payload) ~>
+        if filled-payload[0] is '['   # payload is an array
+          eval livescript.compile "payload-json = #{filled-payload}", bare: true, header: no
+        else                          # payload is a hash
+          eval livescript.compile "payload-json = {\n#{filled-payload}\n}", bare: true, header: no
+        @exocom.send service: 'tweets', name: message, payload: payload-json
+        done!
 
 
 
