@@ -26,15 +26,14 @@ module.exports = ->
   @Given /^an instance of this service$/, (done) ->
     @process = new ExoService exocom-host: 'localhost', service-name: 'tweets', exocom-port: @exocom-port
       ..listen!
-      ..on 'online', -> done!
+      ..on 'online', -> wait 10, done # Wait for ExoCom to register the service
 
 
   @Given /^the service contains the entries:$/, (table, done) ->
-    wait 100, ~>
-      entries = [{[key.to-lower-case!, value] for key, value of record} for record in table.hashes!]
-      @exocom
-        ..send service: 'tweets', name: 'tweets.create-many', payload: entries
-        ..on-receive done
+    entries = [{[key.to-lower-case!, value] for key, value of record} for record in table.hashes!]
+    @exocom
+      ..send service: 'tweets', name: 'tweets.create-many', payload: entries
+      ..on-receive done
 
 
 
@@ -43,14 +42,13 @@ module.exports = ->
 
 
   @When /^sending the message "([^"]*)" with the payload:$/, (message, payload, done) ->
-    wait 100, ~>
-      @fill-in-entry-ids payload, (filled-payload) ~>
-        if filled-payload[0] is '['   # payload is an array
-          eval livescript.compile "payload-json = #{filled-payload}", bare: true, header: no
-        else                          # payload is a hash
-          eval livescript.compile "payload-json = {\n#{filled-payload}\n}", bare: true, header: no
-        @exocom.send service: 'tweets', name: message, payload: payload-json
-        done!
+    @fill-in-entry-ids payload, (filled-payload) ~>
+      if filled-payload[0] is '['   # payload is an array
+        eval livescript.compile "payload-json = #{filled-payload}", bare: true, header: no
+      else                          # payload is a hash
+        eval livescript.compile "payload-json = {\n#{filled-payload}\n}", bare: true, header: no
+      @exocom.send service: 'tweets', name: message, payload: payload-json
+      done!
 
 
 
